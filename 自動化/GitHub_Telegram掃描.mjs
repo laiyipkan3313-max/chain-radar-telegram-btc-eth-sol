@@ -1,0 +1,127 @@
+import { 市場資料服務, 建立快速市場評分 } from "../核心/市場資料.mjs";
+import { 訊號分析引擎 } from "../核心/訊號引擎.mjs";
+import { 資料儲存庫 } from "../核心/資料儲存.mjs";
+import { Telegram機械人 } from "../核心/Telegram機械人.mjs";
+import { AI分析服務 } from "../核心/AI分析.mjs";
+import { 交易追蹤器 } from "../核心/交易追蹤.mjs";
+import { 分析威科夫 } from "../核心/威科夫掃描.mjs";
+
+const 模式 = process.argv[2] || "scan";
+const 必要 = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "OPENROUTER_API_KEY"];
+const 缺少 = 必要.filter((鍵) => !process.env[鍵]);
+if (缺少.length) throw new Error(`缺少 GitHub Secrets：${缺少.join(", ")}`);
+
+const 狀態檔 = new URL("../資料/github自動化狀態.json", import.meta.url).pathname.replace(/^\/(.:\/)/, "$1");
+const 儲存庫 = await new 資料儲存庫(狀態檔).初始化();
+const 市場資料 = new 市場資料服務({ 基礎網址: process.env.BINANCE_FUTURES_API });
+const 引擎 = new 訊號分析引擎(市場資料);
+const Telegram = new Telegram機械人({ token: process.env.TELEGRAM_BOT_TOKEN, chatId: process.env.TELEGRAM_CHAT_ID, 儲存庫 });
+const AI = new AI分析服務({ apiKey: process.env.OPENROUTER_API_KEY, model: process.env.AI_MODEL, fallbackModels: process.env.AI_FALLBACK_MODELS, baseUrl: process.env.PUBLIC_BASE_URL });
+const 追蹤器 = new 交易追蹤器({ 市場資料, 儲存庫, Telegram });
+const 固定標的 = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+
+function HKT資料(日期 = new Date()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Hong_Kong", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(日期).filter((p) => p.type !== "literal").map((p) => [p.type, p.value]));
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, year: Number(parts.year), month: Number(parts.month), day: Number(parts.day) };
+}
+
+function 到期時間(hkt) {
+  const hour = Number(儲存庫.取得設定().nightExpiryHourHkt ?? 8);
+  return new Date(Date.UTC(hkt.year, hkt.month - 1, hkt.day + 1, hour - 8, 0, 0)).toISOString();
+}
+
+async function 分批(項目, 限制, 工作) {
+  const 結果 = new Array(項目.length);
+  let 索引 = 0;
+  async function 工作者() {
+    while (索引 < 項目.length) {
+      const 當前 = 索引++;
+      try { 結果[當前] = await 工作(項目[當前]); }
+      catch (錯誤) { 結果[當前] = { error: 錯誤.message, item: 項目[當前] }; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(限制, 項目.length) }, 工作者));
+  return 結果;
+}
+
+function 最近已發送(symbol, direction, source, 小時 = 4) {
+  const 界線 = Date.now() - 小時 * 60 * 60 * 1000;
+  return 儲存庫.取得訊號(300).some((項目) => 項目.symbol === symbol && 項目.direction === direction && 項目.source === source && new Date(項目.enteredAt).getTime() >= 界線);
+}
+
+async function 夜更(市場) {
+  const hkt = HKT資料();
+  const 設定 = 儲存庫.取得設定();
+  if (設定.lastNightPlanDate === hkt.date) return console.log("今日夜更掛單已產生，跳過重複執行。");
+  const expiresAt = 到期時間(hkt);
+  const plans = [];
+  const skipped = [];
+  for (const row of 市場.slice(0, 3)) {
+    try {
+      const 分析 = await 引擎.分析(row.symbol, row);
+      const 候選 = [分析.strategyCandidates?.trend, 分析.strategyCandidates?.counter].filter(Boolean).sort((甲, 乙) => 乙.score - 甲.score)[0];
+      const direction = 候選?.direction || 分析.primaryPlan.direction;
+      const rating = 分析.timeframes?.["1h"]?.rating;
+      const 一小時方向 = rating === "Buy" ? "LONG" : rating === "Sell" ? "SHORT" : 分析.direction;
+      const strategyType = 候選?.type || (一小時方向 === direction ? "trend" : "counter");
+      const score = 候選?.score ?? 分析.score;
+      const plan = 候選?.plan || 分析.primaryPlan;
+      const aiDecision = { approved: true, score, reason: "GitHub 夜更機會掛單：按多時區結構預設限價", riskFlags: ["NIGHT_OPPORTUNITY"], reviewedAt: new Date().toISOString() };
+      const 完整 = { symbol: row.symbol, rank: row.rank, direction, strategyType, score, quality: score >= Number(設定.nightThreshold ?? 80) ? "qualified" : "opportunity", plan, aiDecision, analysis: 分析.analysis, expiresAt };
+      await 儲存庫.加入掛單(完整);
+      plans.push(完整);
+    } catch (錯誤) { skipped.push({ symbol: row.symbol, reason: 錯誤.message }); }
+  }
+  await Telegram.發送夜更計劃({ date: hkt.date, plans, skipped, expiresAt });
+  await 儲存庫.更新設定({ lastNightPlanDate: hkt.date });
+  console.log(`夜更完成：${plans.length} 張掛單，${skipped.length} 個錯誤。`);
+}
+
+async function 即時多時間掃描(市場) {
+  const 設定 = 儲存庫.取得設定();
+  const 結果 = await 分批(市場.slice(0, 10), 2, async (row) => {
+    const 分析 = await 引擎.分析(row.symbol, row);
+    if (儲存庫.有未平倉(row.symbol)) return null;
+    for (const 原候選 of [分析.strategyCandidates?.trend, 分析.strategyCandidates?.counter].filter(Boolean)) {
+      const threshold = 原候選.type === "counter" ? Number(設定.counterThreshold ?? 85) : Number(設定.trendThreshold ?? 75);
+      const 候選 = { ...原候選, threshold, entryReady: 原候選.trigger && 原候選.plan.inEntryZone && 原候選.score >= threshold };
+      if (!候選.entryReady || 最近已發送(row.symbol, 候選.direction, "github_live", 4)) continue;
+      const aiDecision = await AI.審核策略(候選, 分析);
+      if (!aiDecision.approved) continue;
+      return await 追蹤器.建立入場({ analysis: 分析, candidate: 候選, aiDecision, source: "github_live" });
+    }
+    return null;
+  });
+  return 結果.filter(Boolean).length;
+}
+
+async function 威科夫掃描(市場) {
+  const 掃描 = await 分批(市場, 6, async (row) => 分析威科夫(await 市場資料.取得K線(row.symbol, "1h", 120), row));
+  const 候選們 = 掃描.filter((項目) => 項目?.qualified && 項目.score >= 78).sort((甲, 乙) => 乙.score - 甲.score).slice(0, 3);
+  let 入場 = 0;
+  for (const 項目 of 候選們) {
+    if (儲存庫.有未平倉(項目.symbol) || 最近已發送(項目.symbol, 項目.direction, "github_wyckoff", 6)) continue;
+    const row = 市場.find((市場項目) => 市場項目.symbol === 項目.symbol);
+    const 分析 = await 引擎.分析(項目.symbol, row);
+    const candidate = { type: 項目.strategyType, direction: 項目.direction, score: 項目.score, threshold: 78, trigger: true, entryReady: true, plan: 項目.plan };
+    const aiDecision = await AI.審核策略(candidate, { ...分析, analysis: `威科夫 ${項目.event}｜${分析.analysis}` });
+    if (!aiDecision.approved) continue;
+    const 訊號 = await 追蹤器.建立入場({ analysis: { ...分析, analysis: `威科夫 ${項目.event}｜${分析.analysis}` }, candidate, aiDecision, source: "github_wyckoff" });
+    if (訊號) 入場 += 1;
+  }
+  return { scanned: 掃描.filter(Boolean).length, qualified: 掃描.filter((項目) => 項目?.qualified).length, entries: 入場 };
+}
+
+await 追蹤器.監察持倉();
+const 排行 = 建立快速市場評分(await 市場資料.取得成交額排行(100));
+const 自動市場 = 固定標的.map((symbol) => 排行.find((項目) => 項目.symbol === symbol)).filter(Boolean);
+const 今日 = new Date().toISOString().slice(0, 10);
+if (儲存庫.取得設定().automationHeartbeatDate !== 今日) await 儲存庫.更新設定({ automationHeartbeatDate: 今日 });
+if (模式 === "night") {
+  await 夜更(自動市場);
+} else {
+  const 即時入場 = await 即時多時間掃描(自動市場);
+  const 威科夫 = await 威科夫掃描(自動市場);
+  await 追蹤器.監察持倉();
+  console.log(`BTC／ETH／SOL 掃描完成：即時入場 ${即時入場}，威科夫合格 ${威科夫.qualified}／入場 ${威科夫.entries}。`);
+}

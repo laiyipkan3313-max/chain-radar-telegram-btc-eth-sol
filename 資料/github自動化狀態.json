@@ -1,0 +1,14 @@
+{
+  "signals": [],
+  "pendingOrders": [],
+  "settings": {
+    "mode": "balanced",
+    "paused": false,
+    "trendThreshold": 75,
+    "counterThreshold": 85,
+    "nightThreshold": 80,
+    "nightHourHkt": 23,
+    "nightExpiryHourHkt": 8,
+    "lastNightPlanDate": null
+  }
+}
