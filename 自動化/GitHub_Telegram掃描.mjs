@@ -19,6 +19,7 @@ const Telegram = new Telegram機械人({ token: process.env.TELEGRAM_BOT_TOKEN, 
 const AI = new AI分析服務({ apiKey: process.env.OPENROUTER_API_KEY, model: process.env.AI_MODEL, fallbackModels: process.env.AI_FALLBACK_MODELS, baseUrl: process.env.PUBLIC_BASE_URL });
 const 追蹤器 = new 交易追蹤器({ 市場資料, 儲存庫, Telegram });
 const 固定標的 = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
+let AI配額鎖 = Promise.resolve();
 
 function HKT資料(日期 = new Date()) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Hong_Kong", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(日期).filter((p) => p.type !== "literal").map((p) => [p.type, p.value]));
@@ -26,18 +27,23 @@ function HKT資料(日期 = new Date()) {
 }
 
 async function 登記AI請求(symbol, 類型 = "live") {
-  const hkt = HKT資料();
-  const 設定 = 儲存庫.取得設定();
-  const 同日 = 設定.aiUsageDate === hkt.date;
-  const 已用 = 同日 ? Number(設定.aiUsageCount || 0) : 0;
-  const slots = 同日 && 設定.aiReviewSlots && typeof 設定.aiReviewSlots === "object" ? 設定.aiReviewSlots : {};
-  if (類型 === "live") {
-    const slot = `${hkt.date}:${Math.floor(hkt.hour / 2)}`;
-    if (slots[symbol] === slot || 已用 >= 36) return false;
-    slots[symbol] = slot;
-  } else if (已用 >= 39) return false;
-  await 儲存庫.更新設定({ aiUsageDate: hkt.date, aiUsageCount: 已用 + 1, aiReviewSlots: slots });
-  return true;
+  let 可執行 = false;
+  AI配額鎖 = AI配額鎖.catch(() => {}).then(async () => {
+    const hkt = HKT資料();
+    const 設定 = 儲存庫.取得設定();
+    const 同日 = 設定.aiUsageDate === hkt.date;
+    const 已用 = 同日 ? Number(設定.aiUsageCount || 0) : 0;
+    const slots = 同日 && 設定.aiReviewSlots && typeof 設定.aiReviewSlots === "object" ? { ...設定.aiReviewSlots } : {};
+    if (類型 === "live") {
+      const slot = `${hkt.date}:${Math.floor(hkt.hour / 2)}`;
+      if (slots[symbol] === slot || 已用 >= 36) return;
+      slots[symbol] = slot;
+    } else if (已用 >= 39) return;
+    await 儲存庫.更新設定({ aiUsageDate: hkt.date, aiUsageCount: 已用 + 1, aiReviewSlots: slots });
+    可執行 = true;
+  });
+  await AI配額鎖;
+  return 可執行;
 }
 
 function 到期時間(hkt) {
@@ -101,7 +107,7 @@ async function 夜更(市場) {
 
 async function 即時多時間掃描(市場) {
   const 設定 = 儲存庫.取得設定();
-  const 結果 = await 分批(市場, 1, async (row) => {
+  const 結果 = await 分批(市場, 3, async (row) => {
     const 分析 = await 引擎.分析(row.symbol, row);
     if (儲存庫.有未平倉(row.symbol)) return null;
     if (!await 登記AI請求(row.symbol, "live")) return { symbol: row.symbol, action: "TRACK_ONLY" };
