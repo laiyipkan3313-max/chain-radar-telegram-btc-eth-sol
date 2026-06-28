@@ -9,6 +9,15 @@
     "nightThreshold": 80,
     "nightHourHkt": 23,
     "nightExpiryHourHkt": 8,
-    "lastNightPlanDate": null
+    "lastNightPlanDate": null,
+    "orderSequences": {},
+    "automationHeartbeatDate": "2026-06-28",
+    "aiUsageDate": "2026-06-28",
+    "aiUsageCount": 3,
+    "aiReviewSlots": {
+      "BTCUSDT": "2026-06-28:8",
+      "ETHUSDT": "2026-06-28:8",
+      "SOLUSDT": "2026-06-28:8"
+    }
   }
 }
