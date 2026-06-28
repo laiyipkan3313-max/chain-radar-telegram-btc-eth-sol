@@ -25,7 +25,7 @@ export function 格式化Telegram訊號(訊號) {
     ? `\n另一方向參考：${訊號.reversePlan.direction === "LONG" ? "做多" : "做空"}，評分 ${訊號.reversePlan.score}`
     : "\n另一方向參考：暫未成立";
   const AI = 訊號.aiDecision ? `\nAI 審核：${訊號.aiDecision.score}/100\nAI 意見：${訊號.aiDecision.reason}` : "";
-  return `${是多單 ? "🟢" : "🔴"} ${做法}｜${類型}\n${訊號.symbol}\n\n訊號來源：${來源}\n現價：${價格文字(訊號.price)}\n規則評分：${訊號.score}/100${AI}\n\n入場區：${價格文字(方案.entryLow)} 至 ${價格文字(方案.entryHigh)}\n止損價：${價格文字(方案.sl)}\n第一目標：${價格文字(方案.tp1)}（${方案.rr1.toFixed(1)}R）\n第二目標：${價格文字(方案.tp2)}（${方案.rr2.toFixed(1)}R）\n\n分析：\n${訊號.analysis}${逆向}\n\n⚠️ 技術分析參考，非投資建議`;
+  return `${是多單 ? "🟢" : "🔴"} ${做法}｜${類型}\n${訊號.symbol}\n訂單編號：${訊號.orderId || 訊號.id}\n\n訊號來源：${來源}\n現價：${價格文字(訊號.price)}\nAI評分：${訊號.score}/100${AI}\n\n入場區：${價格文字(方案.entryLow)} 至 ${價格文字(方案.entryHigh)}\n止損價：${價格文字(方案.sl)}\n第一目標：${價格文字(方案.tp1)}（${方案.rr1.toFixed(1)}R）\n第二目標：${價格文字(方案.tp2)}（${方案.rr2.toFixed(1)}R）\n\n分析：\n${訊號.analysis}${逆向}\n\n⚠️ 技術分析參考，非投資建議`;
 }
 
 function 建立指紋(訊號) {
@@ -119,7 +119,7 @@ export class Telegram機械人 {
     const 標籤 = 訊號.result === "win_tp2" ? "TP2 完成" : 訊號.result === "win_tp1" ? "TP1 後保本離場" : "SL 止損";
     await this.API("sendMessage", {
       chat_id: this.chatId,
-      text: `鏈勢雷達｜交易結果\n${訊號.direction === "LONG" ? "🟢 做多" : "🔴 做空"}｜${訊號.strategyType === "counter" ? "逆勢交易" : "順勢交易"}\n${訊號.symbol}｜${標籤}\n實現：${Number(訊號.realizedR || 0).toFixed(2)}R`
+      text: `鏈勢雷達｜交易結果\n訂單編號：${訊號.orderId || 訊號.id}\n${訊號.direction === "LONG" ? "🟢 做多" : "🔴 做空"}｜${訊號.strategyType === "counter" ? "逆勢交易" : "順勢交易"}\n${訊號.symbol}｜${標籤}\n實現：${Number(訊號.realizedR || 0).toFixed(2)}R`
     });
   }
 
@@ -130,7 +130,7 @@ export class Telegram機械人 {
       const 做法 = 項目.direction === "LONG" ? "🟢 做多" : "🔴 做空";
       const 類型 = 項目.strategyType === "counter" ? "逆勢交易" : "順勢交易";
       const 級別 = 項目.quality === "qualified" ? "合格掛單" : "機會掛單";
-      return `${索引 + 1}. ${做法}｜${類型}\n${項目.symbol}｜${級別}｜評分 ${項目.score}/100\n入場區：${價格文字(p.entryLow)} 至 ${價格文字(p.entryHigh)}\n止損價：${價格文字(p.sl)}\n第一目標：${價格文字(p.tp1)}\n第二目標：${價格文字(p.tp2)}\n依據：${p.source}`;
+      return `${索引 + 1}. ${做法}｜${類型}\n${項目.symbol}｜${級別}｜評分 ${項目.score}/100\n掛單編號：${項目.orderId || "建立中"}\n入場區：${價格文字(p.entryLow)} 至 ${價格文字(p.entryHigh)}\n止損價：${價格文字(p.sl)}\n第一目標：${價格文字(p.tp1)}\n第二目標：${價格文字(p.tp2)}\n依據：${p.source}`;
     });
     const 跳過 = skipped.length ? `\n\n跳過：${skipped.map((項目) => `${項目.symbol}（${項目.reason}）`).join("、")}` : "";
     await this.API("sendMessage", {

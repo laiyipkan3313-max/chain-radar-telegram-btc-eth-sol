@@ -92,12 +92,12 @@ async function 夜更(市場) {
         continue;
       }
       const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt };
-      const 完整 = {
-        symbol: row.symbol, rank: row.rank, direction: 決策.direction, strategyType: 決策.strategyType,
+      let 完整 = {
+        system: "telegram", source: "night_plan", symbol: row.symbol, rank: row.rank, direction: 決策.direction, strategyType: 決策.strategyType,
         score: 決策.score, quality: 決策.score >= Number(設定.nightThreshold ?? 80) ? "qualified" : "opportunity",
         plan: 決策.plan, aiDecision, analysis: AI結果.content, expiresAt
       };
-      await 儲存庫.加入掛單(完整);
+      完整 = await 儲存庫.加入掛單(完整);
       plans.push(完整);
     } catch (錯誤) { skipped.push({ symbol: row.symbol, reason: 錯誤.message }); }
   }
@@ -119,9 +119,9 @@ async function 即時多時間掃描(市場) {
     const threshold = 決策.strategyType === "counter" ? Number(設定.counterThreshold ?? 85) : Number(設定.trendThreshold ?? 75);
     if (決策.action !== "ENTER_NOW" || !決策.plan || 決策.score < threshold) return { symbol: row.symbol, action: 決策.action, wyckoff: 威科夫 };
     if (最近已發送(row.symbol, 決策.direction, "github_live", 4)) return null;
-    const 候選 = { type: 決策.strategyType, direction: 決策.direction, score: 決策.score, threshold, trigger: true, entryReady: true, plan: 決策.plan };
+    const 候選 = { system: "telegram", type: 決策.strategyType, direction: 決策.direction, score: 決策.score, threshold, trigger: true, entryReady: true, plan: 決策.plan };
     const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt };
-    return await 追蹤器.建立入場({ analysis: { ...分析, analysis: AI結果.content }, candidate: 候選, aiDecision, source: "github_live" });
+    return await 追蹤器.建立入場({ analysis: { ...分析, system: "telegram", analysis: AI結果.content }, candidate: 候選, aiDecision, source: "github_live" });
   });
   const 錯誤項目 = 結果.filter((項目) => 項目?.error);
   for (const 項目 of 錯誤項目) console.error(`${項目.item?.symbol || "未知標的"} 掃描失敗：${項目.error}`);

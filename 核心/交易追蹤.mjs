@@ -10,13 +10,15 @@ export class 交易追蹤器 {
 
   async 建立入場({ analysis, candidate, aiDecision, source = "live" }) {
     if (!candidate?.entryReady && source === "live") return null;
-    if (!aiDecision?.approved || this.儲存庫.有未平倉(analysis.symbol)) return null;
+    const system = candidate.system || analysis.system || (source === "wyckoff" ? "wyckoff" : ["github_live", "night_order", "telegram_live"].includes(source) ? "telegram" : "website_ai");
+    if (!aiDecision?.approved || this.儲存庫.有未平倉(analysis.symbol, system)) return null;
     const p = candidate.plan;
     const 訊號 = await this.儲存庫.加入訊號({
       symbol: analysis.symbol,
       direction: candidate.direction,
       strategyType: candidate.type,
       source,
+      system,
       price: analysis.price,
       entryPrice: p.entryCenter,
       entryLow: p.entryLow,
@@ -32,7 +34,7 @@ export class 交易追蹤器 {
       rank: analysis.rank,
       lastCheckedTime: Math.floor(Date.now() / 1000) - 60
     });
-    const 發送 = await this.Telegram.發送入場(訊號).catch(() => ({ ok: false }));
+    const 發送 = system === "telegram" ? await this.Telegram.發送入場(訊號).catch(() => ({ ok: false })) : { ok: false, skipped: true };
     if (發送?.messageId) await this.儲存庫.更新訊號(訊號.id, { telegramMessageId: 發送.messageId });
     return 訊號;
   }
@@ -68,7 +70,7 @@ export class 交易追蹤器 {
     }
     狀態.lastCheckedTime = 新K.at(-1).time;
     const 更新後 = await this.儲存庫.更新訊號(訊號.id, 狀態);
-    if (訊號.status === "open" && 更新後?.status === "closed") await this.Telegram.發送結果(更新後).catch(() => {});
+    if (訊號.status === "open" && 更新後?.status === "closed" && 更新後.system === "telegram") await this.Telegram.發送結果(更新後).catch(() => {});
   }
 
   async 監察持倉() {
@@ -86,14 +88,15 @@ export class 交易追蹤器 {
         await this.儲存庫.更新掛單(掛單.id, { status: "expired", closedAt: new Date().toISOString() });
         continue;
       }
-      if (this.儲存庫.有未平倉(掛單.symbol)) continue;
+      if (this.儲存庫.有未平倉(掛單.symbol, 掛單.system)) continue;
       const K線 = await this.市場資料.取得K線(掛單.symbol, "1m", 3);
       const 最新 = K線.at(-1);
       const 有觸及 = 最新.low <= 掛單.plan.entryHigh && 最新.high >= 掛單.plan.entryLow;
       if (!有觸及) continue;
-      const analysis = { symbol: 掛單.symbol, price: 掛單.plan.entryCenter, rank: 掛單.rank, analysis: 掛單.analysis, reversePlan: { score: 0 } };
-      const candidate = { type: 掛單.strategyType || "trend", direction: 掛單.direction, score: 掛單.score, entryReady: true, plan: 掛單.plan };
-      const 訊號 = await this.建立入場({ analysis, candidate, aiDecision: 掛單.aiDecision, source: "night_order" });
+      const analysis = { symbol: 掛單.symbol, system: 掛單.system, price: 掛單.plan.entryCenter, rank: 掛單.rank, analysis: 掛單.analysis, reversePlan: { score: 0 } };
+      const candidate = { system: 掛單.system, type: 掛單.strategyType || "trend", direction: 掛單.direction, score: 掛單.score, entryReady: true, plan: 掛單.plan };
+      const source = 掛單.source === "website_scan" ? "website_order" : "night_order";
+      const 訊號 = await this.建立入場({ analysis, candidate, aiDecision: 掛單.aiDecision, source });
       if (訊號) await this.儲存庫.更新掛單(掛單.id, { status: "filled", filledAt: new Date().toISOString(), signalId: 訊號.id });
     }
   }
