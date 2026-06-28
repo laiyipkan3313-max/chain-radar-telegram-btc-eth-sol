@@ -84,18 +84,58 @@ export class 市場資料服務 {
   async 取得K線(symbol, interval, limit = 200) {
     const 安全標的 = encodeURIComponent(symbol.toUpperCase());
     const 安全週期 = encodeURIComponent(interval);
-    const 資料 = await this.取得JSON(
-      `/fapi/v1/klines?symbol=${安全標的}&interval=${安全週期}&limit=${limit}`
-    );
-    return 資料.map((項目) => ({
-      time: Math.floor(Number(項目[0]) / 1000),
-      open: Number(項目[1]),
-      high: Number(項目[2]),
-      low: Number(項目[3]),
-      close: Number(項目[4]),
-      volume: Number(項目[5]),
-      closeTime: Number(項目[6])
-    }));
+    try {
+      const 資料 = await this.取得JSON(
+        `/fapi/v1/klines?symbol=${安全標的}&interval=${安全週期}&limit=${limit}`
+      );
+      return 資料.map((項目) => ({
+        time: Math.floor(Number(項目[0]) / 1000),
+        open: Number(項目[1]),
+        high: Number(項目[2]),
+        low: Number(項目[3]),
+        close: Number(項目[4]),
+        volume: Number(項目[5]),
+        closeTime: Number(項目[6])
+      }));
+    } catch (錯誤) {
+      console.warn(`${symbol} ${interval} 改用 Coinbase 公開行情：${錯誤.message}`);
+      return this.取得CoinbaseK線(symbol, interval, limit);
+    }
+  }
+
+  async 取得CoinbaseK線(symbol, interval, limit) {
+    const 基礎幣 = String(symbol).toUpperCase().replace(/USDT$/, "");
+    if (!["BTC", "ETH", "SOL"].includes(基礎幣)) throw new Error(`Coinbase 後備來源不支援 ${symbol}`);
+    const product = `${基礎幣}-USD`;
+    const 需要聚合4H = interval === "4h";
+    const 秒數 = { "1m": 60, "5m": 300, "15m": 900, "1h": 3600 }[需要聚合4H ? "1h" : interval];
+    if (!秒數) throw new Error(`Coinbase 後備來源不支援週期 ${interval}`);
+    const 請求數量 = Math.min(300, 需要聚合4H ? limit * 4 + 8 : limit);
+    const 結束 = new Date();
+    const 開始 = new Date(結束.getTime() - 請求數量 * 秒數 * 1000);
+    const 網址 = `https://api.exchange.coinbase.com/products/${encodeURIComponent(product)}/candles?granularity=${秒數}&start=${encodeURIComponent(開始.toISOString())}&end=${encodeURIComponent(結束.toISOString())}`;
+    const 回應 = await fetch(網址, { headers: { "User-Agent": "Chain-Pulse-Radar/1.0", Accept: "application/json" } });
+    if (!回應.ok) throw new Error(`Coinbase 回應 ${回應.status}`);
+    const 原始 = await 回應.json();
+    const K線 = 原始.map((項目) => ({
+      time: Number(項目[0]), low: Number(項目[1]), high: Number(項目[2]),
+      open: Number(項目[3]), close: Number(項目[4]), volume: Number(項目[5]),
+      closeTime: (Number(項目[0]) + 秒數) * 1000 - 1
+    })).sort((甲, 乙) => 甲.time - 乙.time);
+    if (!需要聚合4H) return K線.slice(-limit);
+    const 分組 = new Map();
+    for (const 棒 of K線) {
+      const bucket = Math.floor(棒.time / 14400) * 14400;
+      const 現有 = 分組.get(bucket);
+      if (!現有) 分組.set(bucket, { ...棒, time: bucket, closeTime: (bucket + 14400) * 1000 - 1 });
+      else {
+        現有.high = Math.max(現有.high, 棒.high);
+        現有.low = Math.min(現有.low, 棒.low);
+        現有.close = 棒.close;
+        現有.volume += 棒.volume;
+      }
+    }
+    return [...分組.values()].sort((甲, 乙) => 甲.time - 乙.time).slice(-limit);
   }
 }
 

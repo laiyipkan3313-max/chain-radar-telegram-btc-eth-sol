@@ -1,4 +1,4 @@
-import { 市場資料服務, 建立快速市場評分 } from "../核心/市場資料.mjs";
+import { 市場資料服務 } from "../核心/市場資料.mjs";
 import { 訊號分析引擎 } from "../核心/訊號引擎.mjs";
 import { 資料儲存庫 } from "../核心/資料儲存.mjs";
 import { Telegram機械人 } from "../核心/Telegram機械人.mjs";
@@ -120,8 +120,7 @@ async function 即時多時間掃描(市場) {
 }
 
 await 追蹤器.監察持倉();
-const 排行 = 建立快速市場評分(await 市場資料.取得成交額排行(100));
-const 自動市場 = 固定標的.map((symbol) => 排行.find((項目) => 項目.symbol === symbol)).filter(Boolean);
+const 自動市場 = 固定標的.map((symbol, 索引) => ({ symbol, rank: 索引 + 1, quoteVolume: null, changePercent: null, relativeToBtc: 0 }));
 const 今日 = new Date().toISOString().slice(0, 10);
 if (儲存庫.取得設定().automationHeartbeatDate !== 今日) await 儲存庫.更新設定({ automationHeartbeatDate: 今日 });
 if (模式 === "night") {
