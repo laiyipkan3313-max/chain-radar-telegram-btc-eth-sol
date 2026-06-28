@@ -18,6 +18,51 @@ const 小數位 = (價格) => {
 
 const 四捨五入 = (價格) => Number(價格.toFixed(小數位(價格)));
 
+const 精簡數字 = (數值, 位數 = 4) => Number.isFinite(數值) ? Number(數值.toFixed(位數)) : null;
+
+function 建立客觀市場資料(K線, 分析) {
+  const 保留數量 = { "4h": 24, "1h": 36, "15m": 36, "5m": 36 };
+  return Object.fromEntries(週期設定.map(({ key, label }) => {
+    const 序列 = K線[key];
+    const 最近 = 序列.slice(-Math.min(保留數量[key], 序列.length));
+    const 區間樣本 = 序列.slice(-Math.min(key === "4h" ? 42 : 80, 序列.length));
+    const 區間高 = Math.max(...區間樣本.map((項目) => 項目.high));
+    const 區間低 = Math.min(...區間樣本.map((項目) => 項目.low));
+    const 最新 = 序列.at(-1);
+    const 前一 = 序列.at(-2) || 最新;
+    const 全幅 = Math.max(latestRange(最新), Number.EPSILON);
+    const 上影比例 = (最新.high - Math.max(最新.open, 最新.close)) / 全幅;
+    const 下影比例 = (Math.min(最新.open, 最新.close) - 最新.low) / 全幅;
+    const 實體比例 = Math.abs(最新.close - 最新.open) / 全幅;
+    const 位置 = 區間高 === 區間低 ? 0.5 : (最新.close - 區間低) / (區間高 - 區間低);
+    const 技術 = 分析[key];
+    return [key, {
+      label,
+      indicatorReference: {
+        ema20: 精簡數字(技術.ema20), ema50: 精簡數字(技術.ema50),
+        rsi14: 精簡數字(技術.rsi, 2), macdHistogram: 精簡數字(技術.macd.histogram),
+        atr14: 精簡數字(技術.atr), adx14: 精簡數字(技術.adx, 2),
+        plusDI: 精簡數字(技術.plusDI, 2), minusDI: 精簡數字(技術.minusDI, 2),
+        volumeRatio20: 精簡數字(技術.volumeRatio, 2)
+      },
+      objectiveRange: {
+        high: 精簡數字(區間高), low: 精簡數字(區間低),
+        position0to1: 精簡數字(位置, 3), midpoint: 精簡數字((區間高 + 區間低) / 2)
+      },
+      latestCandle: {
+        bodyRatio: 精簡數字(實體比例, 3), upperWickRatio: 精簡數字(上影比例, 3),
+        lowerWickRatio: 精簡數字(下影比例, 3),
+        closeChangePercent: 前一.close ? 精簡數字((最新.close - 前一.close) / 前一.close * 100, 3) : 0
+      },
+      candles: 最近.map((項目) => [項目.time, 精簡數字(項目.open), 精簡數字(項目.high), 精簡數字(項目.low), 精簡數字(項目.close), 精簡數字(Number(項目.volume) || 0, 2)])
+    }];
+  }));
+}
+
+function latestRange(K線) {
+  return Math.max(0, Number(K線?.high) - Number(K線?.low));
+}
+
 function 建立交易方案(方向, 分析, K線) {
   const 一小時 = 分析["1h"];
   const 最新價 = 一小時.close;
@@ -122,6 +167,7 @@ export class 訊號分析引擎 {
     }
     const 最新價 = 分析["5m"].close;
     const 多時區策略 = 分析多時區策略(K線, 最新價);
+    const AI市場資料 = 建立客觀市場資料(K線, 分析);
     const 順勢 = 多時區策略.candidates.trend;
     const 逆勢 = 多時區策略.candidates.counter;
     const 最佳 = [順勢, 逆勢].filter(Boolean).sort((甲, 乙) => 乙.score - 甲.score)[0];
@@ -156,6 +202,8 @@ export class 訊號分析引擎 {
       reversePlan: { ...逆向方案, score: 逆勢?.score ?? Math.max(35, 分數.total - 16) },
       strategyCandidates: 多時區策略.candidates,
       structureFrames: 多時區策略.frames,
+      aiMarketData: AI市場資料,
+      aiDataSchema: "candles=[unixTime,open,high,low,close,volume]；技術指標及結構結果只屬參考，AI必須自行判讀",
       analysis: `${最佳?.label ?? "結構"}候選：${建立分析文字(最終方向, 分析, 相對強弱)} 4H只作環境參考，1H定方向，15m確認Setup，5m負責入場觸發。`,
       chart: K線["1h"].slice(-120),
       updatedAt: new Date().toISOString()

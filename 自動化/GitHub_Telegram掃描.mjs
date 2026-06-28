@@ -22,7 +22,22 @@ const 固定標的 = ["BTCUSDT", "ETHUSDT", "SOLUSDT"];
 
 function HKT資料(日期 = new Date()) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Hong_Kong", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(日期).filter((p) => p.type !== "literal").map((p) => [p.type, p.value]));
-  return { date: `${parts.year}-${parts.month}-${parts.day}`, year: Number(parts.year), month: Number(parts.month), day: Number(parts.day) };
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, year: Number(parts.year), month: Number(parts.month), day: Number(parts.day), hour: Number(parts.hour), minute: Number(parts.minute) };
+}
+
+async function 登記AI請求(symbol, 類型 = "live") {
+  const hkt = HKT資料();
+  const 設定 = 儲存庫.取得設定();
+  const 同日 = 設定.aiUsageDate === hkt.date;
+  const 已用 = 同日 ? Number(設定.aiUsageCount || 0) : 0;
+  const slots = 同日 && 設定.aiReviewSlots && typeof 設定.aiReviewSlots === "object" ? 設定.aiReviewSlots : {};
+  if (類型 === "live") {
+    const slot = `${hkt.date}:${Math.floor(hkt.hour / 2)}`;
+    if (slots[symbol] === slot || 已用 >= 36) return false;
+    slots[symbol] = slot;
+  } else if (已用 >= 39) return false;
+  await 儲存庫.更新設定({ aiUsageDate: hkt.date, aiUsageCount: 已用 + 1, aiReviewSlots: slots });
+  return true;
 }
 
 function 到期時間(hkt) {
@@ -59,15 +74,22 @@ async function 夜更(市場) {
   for (const row of 市場.slice(0, 3)) {
     try {
       const 分析 = await 引擎.分析(row.symbol, row);
-      const 候選 = [分析.strategyCandidates?.trend, 分析.strategyCandidates?.counter].filter(Boolean).sort((甲, 乙) => 乙.score - 甲.score)[0];
-      const direction = 候選?.direction || 分析.primaryPlan.direction;
-      const rating = 分析.timeframes?.["1h"]?.rating;
-      const 一小時方向 = rating === "Buy" ? "LONG" : rating === "Sell" ? "SHORT" : 分析.direction;
-      const strategyType = 候選?.type || (一小時方向 === direction ? "trend" : "counter");
-      const score = 候選?.score ?? 分析.score;
-      const plan = 候選?.plan || 分析.primaryPlan;
-      const aiDecision = { approved: true, score, reason: "GitHub 夜更機會掛單：按多時區結構預設限價", riskFlags: ["NIGHT_OPPORTUNITY"], reviewedAt: new Date().toISOString() };
-      const 完整 = { symbol: row.symbol, rank: row.rank, direction, strategyType, score, quality: score >= Number(設定.nightThreshold ?? 80) ? "qualified" : "opportunity", plan, aiDecision, analysis: 分析.analysis, expiresAt };
+      if (!await 登記AI請求(row.symbol, "night")) {
+        skipped.push({ symbol: row.symbol, reason: "今日免費 AI 配額已預留完畢" });
+        continue;
+      }
+      const AI結果 = await AI.自主策略分析(分析, { 模式: "night" });
+      const 決策 = AI結果.decision;
+      if (!決策.plan || !["WAIT_LIMIT", "ENTER_NOW"].includes(決策.action)) {
+        skipped.push({ symbol: row.symbol, reason: 決策.noTradeReason || "AI未找到合理夜更掛單" });
+        continue;
+      }
+      const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt };
+      const 完整 = {
+        symbol: row.symbol, rank: row.rank, direction: 決策.direction, strategyType: 決策.strategyType,
+        score: 決策.score, quality: 決策.score >= Number(設定.nightThreshold ?? 80) ? "qualified" : "opportunity",
+        plan: 決策.plan, aiDecision, analysis: AI結果.content, expiresAt
+      };
       await 儲存庫.加入掛單(完整);
       plans.push(完整);
     } catch (錯誤) { skipped.push({ symbol: row.symbol, reason: 錯誤.message }); }
@@ -79,37 +101,22 @@ async function 夜更(市場) {
 
 async function 即時多時間掃描(市場) {
   const 設定 = 儲存庫.取得設定();
-  const 結果 = await 分批(市場.slice(0, 10), 2, async (row) => {
+  const 結果 = await 分批(市場, 1, async (row) => {
     const 分析 = await 引擎.分析(row.symbol, row);
     if (儲存庫.有未平倉(row.symbol)) return null;
-    for (const 原候選 of [分析.strategyCandidates?.trend, 分析.strategyCandidates?.counter].filter(Boolean)) {
-      const threshold = 原候選.type === "counter" ? Number(設定.counterThreshold ?? 85) : Number(設定.trendThreshold ?? 75);
-      const 候選 = { ...原候選, threshold, entryReady: 原候選.trigger && 原候選.plan.inEntryZone && 原候選.score >= threshold };
-      if (!候選.entryReady || 最近已發送(row.symbol, 候選.direction, "github_live", 4)) continue;
-      const aiDecision = await AI.審核策略(候選, 分析);
-      if (!aiDecision.approved) continue;
-      return await 追蹤器.建立入場({ analysis: 分析, candidate: 候選, aiDecision, source: "github_live" });
-    }
-    return null;
+    if (!await 登記AI請求(row.symbol, "live")) return { symbol: row.symbol, action: "TRACK_ONLY" };
+    const 威科夫 = 分析威科夫(await 市場資料.取得K線(row.symbol, "1h", 120), row);
+    分析.wyckoffReference = 威科夫;
+    const AI結果 = await AI.自主策略分析(分析, { 模式: "live" });
+    const 決策 = AI結果.decision;
+    const threshold = 決策.strategyType === "counter" ? Number(設定.counterThreshold ?? 85) : Number(設定.trendThreshold ?? 75);
+    if (決策.action !== "ENTER_NOW" || !決策.plan || 決策.score < threshold) return { symbol: row.symbol, action: 決策.action, wyckoff: 威科夫 };
+    if (最近已發送(row.symbol, 決策.direction, "github_live", 4)) return null;
+    const 候選 = { type: 決策.strategyType, direction: 決策.direction, score: 決策.score, threshold, trigger: true, entryReady: true, plan: 決策.plan };
+    const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt };
+    return await 追蹤器.建立入場({ analysis: { ...分析, analysis: AI結果.content }, candidate: 候選, aiDecision, source: "github_live" });
   });
-  return 結果.filter(Boolean).length;
-}
-
-async function 威科夫掃描(市場) {
-  const 掃描 = await 分批(市場, 6, async (row) => 分析威科夫(await 市場資料.取得K線(row.symbol, "1h", 120), row));
-  const 候選們 = 掃描.filter((項目) => 項目?.qualified && 項目.score >= 78).sort((甲, 乙) => 乙.score - 甲.score).slice(0, 3);
-  let 入場 = 0;
-  for (const 項目 of 候選們) {
-    if (儲存庫.有未平倉(項目.symbol) || 最近已發送(項目.symbol, 項目.direction, "github_wyckoff", 6)) continue;
-    const row = 市場.find((市場項目) => 市場項目.symbol === 項目.symbol);
-    const 分析 = await 引擎.分析(項目.symbol, row);
-    const candidate = { type: 項目.strategyType, direction: 項目.direction, score: 項目.score, threshold: 78, trigger: true, entryReady: true, plan: 項目.plan };
-    const aiDecision = await AI.審核策略(candidate, { ...分析, analysis: `威科夫 ${項目.event}｜${分析.analysis}` });
-    if (!aiDecision.approved) continue;
-    const 訊號 = await 追蹤器.建立入場({ analysis: { ...分析, analysis: `威科夫 ${項目.event}｜${分析.analysis}` }, candidate, aiDecision, source: "github_wyckoff" });
-    if (訊號) 入場 += 1;
-  }
-  return { scanned: 掃描.filter(Boolean).length, qualified: 掃描.filter((項目) => 項目?.qualified).length, entries: 入場 };
+  return { entries: 結果.filter((項目) => 項目?.id).length, decisions: 結果.filter(Boolean).length };
 }
 
 await 追蹤器.監察持倉();
@@ -120,8 +127,7 @@ if (儲存庫.取得設定().automationHeartbeatDate !== 今日) await 儲存庫
 if (模式 === "night") {
   await 夜更(自動市場);
 } else {
-  const 即時入場 = await 即時多時間掃描(自動市場);
-  const 威科夫 = await 威科夫掃描(自動市場);
+  const 掃描 = await 即時多時間掃描(自動市場);
   await 追蹤器.監察持倉();
-  console.log(`BTC／ETH／SOL 掃描完成：即時入場 ${即時入場}，威科夫合格 ${威科夫.qualified}／入場 ${威科夫.entries}。`);
+  console.log(`BTC／ETH／SOL AI自主掃描完成：有效判斷 ${掃描.decisions}，即時入場 ${掃描.entries}。`);
 }

@@ -56,6 +56,43 @@ export function ATR(K線, 週期 = 14) {
   return SMA(TR, 週期);
 }
 
+export function ADX(K線, 週期 = 14) {
+  if (K線.length < 週期 * 2 + 1) return { adx: null, plusDI: null, minusDI: null };
+  const 真實波幅 = [];
+  const 正向移動 = [];
+  const 負向移動 = [];
+  for (let 索引 = 1; 索引 < K線.length; 索引 += 1) {
+    const 本期 = K線[索引];
+    const 前期 = K線[索引 - 1];
+    const 向上 = 本期.high - 前期.high;
+    const 向下 = 前期.low - 本期.low;
+    真實波幅.push(Math.max(本期.high - 本期.low, Math.abs(本期.high - 前期.close), Math.abs(本期.low - 前期.close)));
+    正向移動.push(向上 > 向下 && 向上 > 0 ? 向上 : 0);
+    負向移動.push(向下 > 向上 && 向下 > 0 ? 向下 : 0);
+  }
+  let 平滑TR = 真實波幅.slice(0, 週期).reduce((和, 值) => 和 + 值, 0);
+  let 平滑正DM = 正向移動.slice(0, 週期).reduce((和, 值) => 和 + 值, 0);
+  let 平滑負DM = 負向移動.slice(0, 週期).reduce((和, 值) => 和 + 值, 0);
+  const DX = [];
+  let plusDI = null;
+  let minusDI = null;
+  for (let 索引 = 週期; 索引 < 真實波幅.length; 索引 += 1) {
+    if (索引 > 週期) {
+      平滑TR = 平滑TR - 平滑TR / 週期 + 真實波幅[索引];
+      平滑正DM = 平滑正DM - 平滑正DM / 週期 + 正向移動[索引];
+      平滑負DM = 平滑負DM - 平滑負DM / 週期 + 負向移動[索引];
+    }
+    plusDI = 平滑TR ? (平滑正DM / 平滑TR) * 100 : 0;
+    minusDI = 平滑TR ? (平滑負DM / 平滑TR) * 100 : 0;
+    const 總和 = plusDI + minusDI;
+    DX.push(總和 ? (Math.abs(plusDI - minusDI) / 總和) * 100 : 0);
+  }
+  if (DX.length < 週期) return { adx: null, plusDI, minusDI };
+  let adx = DX.slice(0, 週期).reduce((和, 值) => 和 + 值, 0) / 週期;
+  for (let 索引 = 週期; 索引 < DX.length; 索引 += 1) adx = ((adx * (週期 - 1)) + DX[索引]) / 週期;
+  return { adx, plusDI, minusDI };
+}
+
 export function Stoch(K線, 週期 = 14) {
   if (K線.length < 週期) return null;
   const 最近 = K線.slice(-週期);
@@ -115,6 +152,10 @@ export function 分析時間框架(K線) {
   const stoch = Stoch(K線, 14);
   const macd = MACD(收市);
   const atr = ATR(K線, 14);
+  const dmi = ADX(K線, 14);
+  const 成交量 = K線.map((項目) => Number(項目.volume) || 0);
+  const volumeAverage20 = SMA(成交量, 20);
+  const volumeRatio = volumeAverage20 ? 成交量.at(-1) / volumeAverage20 : null;
   const 結構 = 判斷結構(K線);
   let 趨勢 = 0;
   if (有效數字(ema20) && 有效數字(ema50)) {
@@ -126,6 +167,8 @@ export function 分析時間框架(K線) {
   const rating = 綜合方向 >= 68 ? "Buy" : 綜合方向 <= 32 ? "Sell" : "Neutral";
   return {
     close, ema10, ema20, ema50, sma50, rsi, stoch, macd, atr,
+    adx: dmi.adx, plusDI: dmi.plusDI, minusDI: dmi.minusDI,
+    volumeRatio,
     structure: 結構.label,
     structureValue: 結構.value,
     trendValue: 趨勢,
