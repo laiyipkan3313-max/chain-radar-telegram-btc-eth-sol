@@ -9,6 +9,8 @@ export class 市場資料服務 {
     this.基礎網址 = 基礎網址.replace(/\/$/, "");
     this.重試次數 = 重試次數;
     this.來源 = 來源;
+    this.公開行情序列 = Promise.resolve();
+    this.下一次公開請求 = 0;
     this.合約資料 = null;
     this.合約更新時間 = 0;
   }
@@ -83,6 +85,7 @@ export class 市場資料服務 {
   }
 
   async 取得K線(symbol, interval, limit = 200) {
+    if (this.來源 === "kraken") return this.取得KrakenK線(symbol, interval, limit);
     if (this.來源 === "coinbase") return this.取得CoinbaseK線(symbol, interval, limit);
     const 安全標的 = encodeURIComponent(symbol.toUpperCase());
     const 安全週期 = encodeURIComponent(interval);
@@ -100,9 +103,48 @@ export class 市場資料服務 {
         closeTime: Number(項目[6])
       }));
     } catch (錯誤) {
-      console.warn(`${symbol} ${interval} 改用 Coinbase 公開行情：${錯誤.message}`);
-      return this.取得CoinbaseK線(symbol, interval, limit);
+      console.warn(`${symbol} ${interval} 改用 Kraken 公開行情：${錯誤.message}`);
+      return this.取得KrakenK線(symbol, interval, limit);
     }
+  }
+
+  async 排隊取得公開JSON(網址, 名稱) {
+    let 結果;
+    let 最後錯誤;
+    this.公開行情序列 = this.公開行情序列.catch(() => {}).then(async () => {
+      const 等候 = Math.max(0, this.下一次公開請求 - Date.now());
+      if (等候) await 延遲(等候);
+      for (let 次數 = 0; 次數 < 3; 次數 += 1) {
+        const 回應 = await fetch(網址, { headers: { "User-Agent": "Chain-Pulse-Radar/1.0", Accept: "application/json" } });
+        if (回應.ok) {
+          結果 = await 回應.json();
+          this.下一次公開請求 = Date.now() + 400;
+          return;
+        }
+        最後錯誤 = new Error(`${名稱} 回應 ${回應.status}`);
+        if (回應.status !== 429 || 次數 === 2) break;
+        await 延遲(1200 * (次數 + 1));
+      }
+      throw 最後錯誤;
+    });
+    await this.公開行情序列;
+    return 結果;
+  }
+
+  async 取得KrakenK線(symbol, interval, limit) {
+    const 基礎幣 = String(symbol).toUpperCase().replace(/USDT$/, "");
+    const pair = { BTC: "XBTUSD", ETH: "ETHUSD", SOL: "SOLUSD" }[基礎幣];
+    const 分鐘 = { "1m": 1, "5m": 5, "15m": 15, "1h": 60, "4h": 240 }[interval];
+    if (!pair || !分鐘) throw new Error(`Kraken 後備來源不支援 ${symbol} ${interval}`);
+    const 資料 = await this.排隊取得公開JSON(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=${分鐘}`, "Kraken");
+    if (資料?.error?.length) throw new Error(`Kraken：${資料.error.join("、")}`);
+    const key = Object.keys(資料?.result || {}).find((項目) => 項目 !== "last");
+    const 原始 = key ? 資料.result[key] : [];
+    if (!原始.length) throw new Error(`Kraken 沒有回傳 ${symbol} ${interval} K線`);
+    return 原始.slice(-limit).map((項目) => ({
+      time: Number(項目[0]), open: Number(項目[1]), high: Number(項目[2]), low: Number(項目[3]),
+      close: Number(項目[4]), volume: Number(項目[6]), closeTime: (Number(項目[0]) + 分鐘 * 60) * 1000 - 1
+    }));
   }
 
   async 取得CoinbaseK線(symbol, interval, limit) {

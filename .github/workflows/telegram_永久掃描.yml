@@ -46,7 +46,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           AI_MODEL: ${{ vars.AI_MODEL || 'openai/gpt-oss-120b:free' }}
           AI_FALLBACK_MODELS: ${{ vars.AI_FALLBACK_MODELS || 'openrouter/free' }}
-          MARKET_DATA_PROVIDER: coinbase
+          MARKET_DATA_PROVIDER: kraken
         run: |
           MODE="${{ inputs.mode }}"
           if [ -z "$MODE" ]; then MODE="scan"; fi
