@@ -5,13 +5,14 @@ import { Telegram機械人 } from "../核心/Telegram機械人.mjs";
 import { AI分析服務 } from "../核心/AI分析.mjs";
 import { 交易追蹤器 } from "../核心/交易追蹤.mjs";
 import { 分析威科夫 } from "../核心/威科夫掃描.mjs";
+import { fileURLToPath } from "node:url";
 
 const 模式 = process.argv[2] || "scan";
 const 必要 = ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "OPENROUTER_API_KEY"];
 const 缺少 = 必要.filter((鍵) => !process.env[鍵]);
 if (缺少.length) throw new Error(`缺少 GitHub Secrets：${缺少.join(", ")}`);
 
-const 狀態檔 = new URL("../資料/github自動化狀態.json", import.meta.url).pathname.replace(/^\/(.:\/)/, "$1");
+const 狀態檔 = fileURLToPath(new URL("../資料/github自動化狀態.json", import.meta.url));
 const 儲存庫 = await new 資料儲存庫(狀態檔).初始化();
 const 市場資料 = new 市場資料服務({ 基礎網址: process.env.BINANCE_FUTURES_API });
 const 引擎 = new 訊號分析引擎(市場資料);
@@ -122,7 +123,11 @@ async function 即時多時間掃描(市場) {
     const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt };
     return await 追蹤器.建立入場({ analysis: { ...分析, analysis: AI結果.content }, candidate: 候選, aiDecision, source: "github_live" });
   });
-  return { entries: 結果.filter((項目) => 項目?.id).length, decisions: 結果.filter(Boolean).length };
+  const 錯誤項目 = 結果.filter((項目) => 項目?.error);
+  for (const 項目 of 錯誤項目) console.error(`${項目.item?.symbol || "未知標的"} 掃描失敗：${項目.error}`);
+  const 成功項目 = 結果.filter((項目) => 項目 && !項目.error);
+  if (錯誤項目.length === 市場.length) throw new Error("BTC／ETH／SOL 全部掃描失敗");
+  return { entries: 成功項目.filter((項目) => 項目?.id).length, decisions: 成功項目.length, errors: 錯誤項目.length };
 }
 
 await 追蹤器.監察持倉();
@@ -134,5 +139,5 @@ if (模式 === "night") {
 } else {
   const 掃描 = await 即時多時間掃描(自動市場);
   await 追蹤器.監察持倉();
-  console.log(`BTC／ETH／SOL AI自主掃描完成：有效判斷 ${掃描.decisions}，即時入場 ${掃描.entries}。`);
+  console.log(`BTC／ETH／SOL AI自主掃描完成：有效判斷 ${掃描.decisions}，錯誤 ${掃描.errors}，即時入場 ${掃描.entries}。`);
 }
