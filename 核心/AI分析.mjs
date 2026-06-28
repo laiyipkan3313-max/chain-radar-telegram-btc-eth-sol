@@ -197,9 +197,14 @@ export class AI分析服務 {
 
   async 呼叫自主模型(模型, 分析, { 模式 = "live" } = {}) {
     await this.等候配額();
-    const 回應 = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const 控制器 = new AbortController();
+    const 計時器 = setTimeout(() => 控制器.abort(), 75_000);
+    let 回應;
+    try {
+      回應 = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: { authorization: `Bearer ${this.apiKey}`, "content-type": "application/json", "http-referer": this.baseUrl, "x-title": "Chain Pulse Radar" },
+      signal: 控制器.signal,
       body: JSON.stringify({
         model: 模型,
         messages: [
@@ -211,7 +216,8 @@ export class AI分析服務 {
         max_tokens: 3200,
         temperature: 0.2
       })
-    });
+      });
+    } finally { clearTimeout(計時器); }
     const 結果 = await 回應.json();
     if (!回應.ok) throw new Error(結果?.error?.message || `OpenRouter 回應 ${回應.status}`);
     const 原始 = 擷取JSON(結果.choices?.[0]?.message?.content);

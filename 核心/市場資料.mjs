@@ -5,9 +5,10 @@ const 穩定幣 = new Set([
 const 延遲 = (毫秒) => new Promise((resolve) => setTimeout(resolve, 毫秒));
 
 export class 市場資料服務 {
-  constructor({ 基礎網址 = "https://fapi.binance.com", 重試次數 = 2 } = {}) {
+  constructor({ 基礎網址 = "https://fapi.binance.com", 重試次數 = 2, 來源 = process.env.MARKET_DATA_PROVIDER || "auto" } = {}) {
     this.基礎網址 = 基礎網址.replace(/\/$/, "");
     this.重試次數 = 重試次數;
+    this.來源 = 來源;
     this.合約資料 = null;
     this.合約更新時間 = 0;
   }
@@ -82,6 +83,7 @@ export class 市場資料服務 {
   }
 
   async 取得K線(symbol, interval, limit = 200) {
+    if (this.來源 === "coinbase") return this.取得CoinbaseK線(symbol, interval, limit);
     const 安全標的 = encodeURIComponent(symbol.toUpperCase());
     const 安全週期 = encodeURIComponent(interval);
     try {
