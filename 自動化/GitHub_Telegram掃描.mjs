@@ -5,6 +5,7 @@ import { Telegram機械人 } from "../核心/Telegram機械人.mjs";
 import { AI分析服務 } from "../核心/AI分析.mjs";
 import { 交易追蹤器 } from "../核心/交易追蹤.mjs";
 import { 分析威科夫 } from "../核心/威科夫掃描.mjs";
+import { 建立夜更保底結果, 夜更到期時間, 夜更目標日期, 夜更已完整產生 } from "../核心/夜更掛單.mjs";
 import { fileURLToPath } from "node:url";
 
 const 模式 = process.argv[2] || "scan";
@@ -47,11 +48,6 @@ async function 登記AI請求(symbol, 類型 = "live") {
   return 可執行;
 }
 
-function 到期時間(hkt) {
-  const hour = Number(儲存庫.取得設定().nightExpiryHourHkt ?? 8);
-  return new Date(Date.UTC(hkt.year, hkt.month - 1, hkt.day + 1, hour - 8, 0, 0)).toISOString();
-}
-
 async function 分批(項目, 限制, 工作) {
   const 結果 = new Array(項目.length);
   let 索引 = 0;
@@ -74,35 +70,42 @@ function 最近已發送(symbol, direction, source, 小時 = 4) {
 async function 夜更(市場) {
   const hkt = HKT資料();
   const 設定 = 儲存庫.取得設定();
-  if (設定.lastNightPlanDate === hkt.date) return console.log("今日夜更掛單已產生，跳過重複執行。");
-  const expiresAt = 到期時間(hkt);
-  const plans = [];
+  const 目標日期 = 夜更目標日期(hkt);
+  const expiresAt = 夜更到期時間(目標日期, Number(設定.nightExpiryHourHkt ?? 8));
+  const 已有掛單 = 儲存庫.取得掛單("telegram").filter((項目) => 項目.source === "night_plan" && 項目.nightDate === 目標日期);
+  if (夜更已完整產生(設定, 目標日期)) return console.log("今日三張夜更掛單已完整產生，跳過重複執行。");
+  const plans = [...已有掛單];
   const skipped = [];
   for (const row of 市場.slice(0, 3)) {
+    if (plans.some((項目) => 項目.symbol === row.symbol)) continue;
     try {
       const 分析 = await 引擎.分析(row.symbol, row);
-      if (!await 登記AI請求(row.symbol, "night")) {
-        skipped.push({ symbol: row.symbol, reason: "今日免費 AI 配額已預留完畢" });
-        continue;
+      let AI結果;
+      let AI錯誤 = "";
+      if (await 登記AI請求(row.symbol, "night")) {
+        try { AI結果 = await AI.自主策略分析(分析, { 模式: "night" }); }
+        catch (錯誤) { AI錯誤 = 錯誤.message; }
+      } else {
+        AI錯誤 = "今日免費 AI 配額已預留完畢";
       }
-      const AI結果 = await AI.自主策略分析(分析, { 模式: "night" });
+      if (!AI結果) AI結果 = 建立夜更保底結果(分析, AI錯誤 || "AI未能完成夜更判斷");
       const 決策 = AI結果.decision;
       if (!決策.plan || !["WAIT_LIMIT", "ENTER_NOW"].includes(決策.action)) {
-        skipped.push({ symbol: row.symbol, reason: 決策.noTradeReason || "AI未找到合理夜更掛單" });
-        continue;
+        throw new Error("夜更分析未能建立完整掛單");
       }
-      const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt };
+      const aiDecision = { approved: true, score: 決策.score, reason: 決策.reason, riskFlags: 決策.riskFlags, model: AI結果.model, reviewedAt: AI結果.generatedAt, fallback: Boolean(AI結果.fallback) };
       let 完整 = {
         system: "telegram", source: "night_plan", symbol: row.symbol, rank: row.rank, direction: 決策.direction, strategyType: 決策.strategyType,
         score: 決策.score, quality: 決策.score >= Number(設定.nightThreshold ?? 80) ? "qualified" : "opportunity",
-        plan: 決策.plan, aiDecision, analysis: AI結果.content, expiresAt
+        plan: 決策.plan, aiDecision, analysis: AI結果.content, nightDate: 目標日期, expiresAt
       };
       完整 = await 儲存庫.加入掛單(完整);
       plans.push(完整);
     } catch (錯誤) { skipped.push({ symbol: row.symbol, reason: 錯誤.message }); }
   }
-  await Telegram.發送夜更計劃({ date: hkt.date, plans, skipped, expiresAt });
-  await 儲存庫.更新設定({ lastNightPlanDate: hkt.date });
+  await Telegram.發送夜更計劃({ date: 目標日期, plans, skipped, expiresAt });
+  if (plans.length < 3) throw new Error(`夜更未完成：只有 ${plans.length}/3 張掛單，保留未完成狀態等待下一次重試`);
+  await 儲存庫.更新設定({ lastNightPlanDate: 目標日期, lastNightPlanCount: plans.length });
   console.log(`夜更完成：${plans.length} 張掛單，${skipped.length} 個錯誤。`);
 }
 

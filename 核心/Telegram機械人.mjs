@@ -129,13 +129,14 @@ export class Telegram機械人 {
       const p = 項目.plan;
       const 做法 = 項目.direction === "LONG" ? "🟢 做多" : "🔴 做空";
       const 類型 = 項目.strategyType === "counter" ? "逆勢交易" : "順勢交易";
-      const 級別 = 項目.quality === "qualified" ? "合格掛單" : "機會掛單";
+      const 級別 = 項目.aiDecision?.fallback ? "AI異常保底掛單" : 項目.quality === "qualified" ? "合格掛單" : "機會掛單";
       return `${索引 + 1}. ${做法}｜${類型}\n${項目.symbol}｜${級別}｜評分 ${項目.score}/100\n掛單編號：${項目.orderId || "建立中"}\n入場區：${價格文字(p.entryLow)} 至 ${價格文字(p.entryHigh)}\n止損價：${價格文字(p.sl)}\n第一目標：${價格文字(p.tp1)}\n第二目標：${價格文字(p.tp2)}\n依據：${p.source}`;
     });
-    const 跳過 = skipped.length ? `\n\n跳過：${skipped.map((項目) => `${項目.symbol}（${項目.reason}）`).join("、")}` : "";
+    const 完成 = plans.length >= 3;
+    const 跳過 = skipped.length ? `\n\n未完成：${skipped.map((項目) => `${項目.symbol}（${項目.reason}）`).join("、")}\n系統會喺下一個保險排程重試。` : "";
     await this.API("sendMessage", {
       chat_id: this.chatId,
-      text: `鏈勢雷達｜夜更三個機會掛單 ${date}\n香港時間 23:00｜成交額頭三名\n\n${區塊.join("\n\n")}${跳過}\n\n有效至：${new Date(expiresAt).toLocaleString("zh-HK", { timeZone: "Asia/Hong_Kong" })}\n⚠️ 限價機會不等於保證成交或獲利`
+      text: `鏈勢雷達｜${完成 ? "夜更三個機會掛單" : `夜更掛單未完成 ${plans.length}/3`} ${date}\n香港時間 23:00｜BTC／ETH／SOL\n\n${區塊.join("\n\n") || "暫未建立任何掛單"}${跳過}\n\n有效至：${new Date(expiresAt).toLocaleString("zh-HK", { timeZone: "Asia/Hong_Kong" })}\n⚠️ 限價機會不等於保證成交或獲利`
     });
   }
 

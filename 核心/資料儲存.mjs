@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 export class 資料儲存庫 {
   constructor(檔案路徑 = "./資料/訊號紀錄.json") {
     this.檔案路徑 = resolve(檔案路徑);
-    this.資料 = { signals: [], pendingOrders: [], settings: { mode: "balanced", paused: false, trendThreshold: 75, counterThreshold: 85, nightThreshold: 80, nightHourHkt: 23, nightExpiryHourHkt: 8, lastNightPlanDate: null } };
+    this.資料 = { signals: [], pendingOrders: [], settings: { mode: "balanced", paused: false, trendThreshold: 75, counterThreshold: 85, nightThreshold: 80, nightHourHkt: 23, nightExpiryHourHkt: 8, lastNightPlanDate: null, lastNightPlanCount: 0 } };
     this.寫入序列 = Promise.resolve();
   }
 
@@ -14,7 +14,7 @@ export class 資料儲存庫 {
       this.資料 = JSON.parse(await readFile(this.檔案路徑, "utf8"));
       this.資料.signals ??= [];
       this.資料.pendingOrders ??= [];
-      this.資料.settings = { mode: "balanced", paused: false, trendThreshold: 75, counterThreshold: 85, nightThreshold: 80, nightHourHkt: 23, nightExpiryHourHkt: 8, lastNightPlanDate: null, ...(this.資料.settings ?? {}) };
+      this.資料.settings = { mode: "balanced", paused: false, trendThreshold: 75, counterThreshold: 85, nightThreshold: 80, nightHourHkt: 23, nightExpiryHourHkt: 8, lastNightPlanDate: null, lastNightPlanCount: 0, ...(this.資料.settings ?? {}) };
       this.資料.settings.orderSequences ??= {};
       this.資料.signals = this.資料.signals.map((項目) => {
         const system = 項目.system || this.推斷系統(項目.source);

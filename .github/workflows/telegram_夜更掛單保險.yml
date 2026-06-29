@@ -1,18 +1,11 @@
-name: Telegram 永久掃描
+name: Telegram 夜更掛單保險
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    # 香港時間 23:07、23:22、23:37、23:52；如整個時段被GitHub延誤，00:07、00:22再補發前一晚。
+    - cron: "7,22,37,52 15 * * *"
+    - cron: "7,22 16 * * *"
   workflow_dispatch:
-    inputs:
-      mode:
-        description: 執行模式
-        required: true
-        default: scan
-        type: choice
-        options:
-          - scan
-          - night
 
 permissions:
   contents: write
@@ -22,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  scan:
+  night:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -36,7 +29,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: 執行市場掃描
+      - name: 產生 BTC／ETH／SOL 夜更掛單
         shell: bash
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -45,17 +38,15 @@ jobs:
           AI_MODEL: ${{ vars.AI_MODEL || 'openai/gpt-oss-120b:free' }}
           AI_FALLBACK_MODELS: ${{ vars.AI_FALLBACK_MODELS || 'openrouter/free' }}
           MARKET_DATA_PROVIDER: kraken
-        run: |
-          MODE="${{ inputs.mode }}"
-          if [ -z "$MODE" ]; then MODE="scan"; fi
-          node "自動化/GitHub_Telegram掃描.mjs" "$MODE"
+        run: node "自動化/GitHub_Telegram掃描.mjs" night
 
-      - name: 保存訊號與勝率狀態
+      - name: 保存夜更掛單狀態
+        if: always()
         shell: bash
         run: |
           git config user.name "鏈勢雷達機械人"
           git config user.email "actions@users.noreply.github.com"
           git add -f "資料/github自動化狀態.json"
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "更新 Telegram 自動掃描狀態 [skip ci]"
+          git commit -m "更新 Telegram 夜更掛單狀態 [skip ci]"
           git push

@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check 自動化/GitHub_Telegram掃描.mjs"
+    "check": "node --check 自動化/GitHub_Telegram掃描.mjs",
+    "test": "node --test 測試/*.test.mjs"
   },
   "engines": {
     "node": ">=24"
