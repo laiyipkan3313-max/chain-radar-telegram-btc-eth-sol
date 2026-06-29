@@ -58,12 +58,139 @@
       },
       "analysis": "結論：做空｜順勢｜可即時入場｜AI評分 78\n市場狀態：bearish\n目前位置：折價區；高週期偏向：down\n\n1. 多週期結構分析\n4H：4H顯示供給區上方，EMA20<EMA50，RSI接近中性偏低，整體偏空\n1H：1H形成高低點上升結構，價格在需求區上方，EMA20≈EMA50，RSI略高於50，短期仍有下行壓力\n15m：15m出現供給帶與下跌趨勢，RSI低於40，MACD持續負向，結構偏向BOS\n5m：5m確認跌破60102.8的CHoCH，形成Bearish BOS，價格已跌至60000以下\n\n2. 流動性目標\n上方 BSL：60200.2、60348.7\n下方 SSL：59881.4、59999.5\n\n3. 交易劇本\n主劇本：TrendShort\n逆向／備用劇本：未有足夠證據\nEntry：59910.09985 - 60090.10015\nSL：60941.495\nTP1：58117.31｜TP2：57175.915\nRR：2／3\n觸發條件：5m Bearish CHoCH at 60102.8；Price entered short entry zone\n失效條件：Price crosses above 60200.2 (EQH) or forms bullish reversal candle\n判斷依據：5m已確認Bearish BOS且價格已進入設定的短線入場區間，符合趨勢做空條件，且上位時間框架仍呈現供給壓力。",
       "rank": 1,
-      "lastCheckedTime": 1782774720,
+      "lastCheckedTime": 1782775980,
       "orderId": "TG-20260628-0001",
       "telegramMessageId": 66
     }
   ],
-  "pendingOrders": [],
+  "pendingOrders": [
+    {
+      "id": "order-1782776228440-SOLUSDT",
+      "status": "pending",
+      "createdAt": "2026-06-29T23:37:08.440Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "SOLUSDT",
+      "rank": 3,
+      "direction": "SHORT",
+      "strategyType": "counter",
+      "score": 62,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "SHORT",
+        "entryLow": 75.55,
+        "entryHigh": 75.7,
+        "entryCenter": 75.625,
+        "sl": 76.2,
+        "tp1": 73.5,
+        "tp2": 72,
+        "rr1": 3.7,
+        "rr2": 6.3,
+        "inEntryZone": false,
+        "source": "AI自主判讀"
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 62,
+        "reason": "雖然4H與1H呈多頭，但15m與5m已形成明顯的賣壓與供給區，短線做空風險較低，採取限價掛單於供給帶上方，等待回測下跌。",
+        "riskFlags": [
+          "短期波動可能觸發止損",
+          "供給帶上方若快速突破可能轉為多頭"
+        ],
+        "model": "openai/gpt-oss-120b:free",
+        "reviewedAt": "2026-06-29T23:37:08.440Z",
+        "fallback": false
+      },
+      "analysis": "結論：做空｜逆勢｜等待限價區｜AI評分 62\n市場狀態：bullish_long_term_bearish_short_term\n目前位置：溢價區；高週期偏向：LONG\n\n1. 多週期結構分析\n4H：4H顯示多頭BOS，EMA20在EMA50上方，RSI接近60，宏觀環境偏多。\n1H：1H仍維持多頭結構，EMA20>EMA50，RSI68，短期仍在上升通道內。\n15m：15m出現跌破CHoCH，RSI30，MACD轉負，形成看跌區間，供給帶在75.14-76.34。\n5m：5m持續跌破CHoCH，RSI37，跌破75.0形成賣壓，供給帶75.51-75.66，流動性EQH在75.25附近。\n\n2. 流動性目標\n上方 BSL：73、72.2\n下方 SSL：75.66、75.51\n\n3. 交易劇本\n主劇本：短期看跌突破供給區，預期回測需求區70.1-70.4後再度上行。\n逆向／備用劇本：若價格突破供給區上方持續上漲，可能重返多頭趨勢。\nEntry：75.55 - 75.7\nSL：76.2\nTP1：73.5｜TP2：72\nRR：3.7／6.3\n觸發條件：價格突破75.51供給帶上緣並收盤於75.55以上\n失效條件：若價格跌破75.30且持續下行至74.80以下，視為失效。\n目前未直接入場原因：尚未滿足即時進場條件\n判斷依據：雖然4H與1H呈多頭，但15m與5m已形成明顯的賣壓與供給區，短線做空風險較低，採取限價掛單於供給帶上方，等待回測下跌。",
+      "nightDate": "2026-06-30",
+      "expiresAt": "2026-07-01T00:00:00.000Z",
+      "orderId": "TG-20260630-0003"
+    },
+    {
+      "id": "order-1782776195332-ETHUSDT",
+      "status": "pending",
+      "createdAt": "2026-06-29T23:36:35.332Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "ETHUSDT",
+      "rank": 2,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 63,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 1554.71,
+        "entryHigh": 1569.04,
+        "entryCenter": 1561.875,
+        "sl": 1553.7810714285715,
+        "tp1": 1578.062857142857,
+        "tp2": 1586.1567857142854,
+        "rr1": 2,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）",
+        "inEntryZone": false
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 63,
+        "reason": "夜更 AI 未有產生完整 WAIT_LIMIT 掛單；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "夜更 AI 未有產生完整 WAIT_LIMIT 掛單"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-06-29T23:36:35.332Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：ETHUSDT LONG｜Entry 1554.71-1569.04｜SL 1553.7810714285715｜TP1 1578.062857142857｜TP2 1586.1567857142854｜原因：夜更 AI 未有產生完整 WAIT_LIMIT 掛單",
+      "nightDate": "2026-06-30",
+      "expiresAt": "2026-07-01T00:00:00.000Z",
+      "orderId": "TG-20260630-0002"
+    },
+    {
+      "id": "order-1782776034595-BTCUSDT",
+      "status": "pending",
+      "createdAt": "2026-06-29T23:33:54.595Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "BTCUSDT",
+      "rank": 1,
+      "direction": "SHORT",
+      "strategyType": "trend",
+      "score": 64,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "SHORT",
+        "entryLow": 60265.1,
+        "entryHigh": 60344.9,
+        "entryCenter": 60305,
+        "sl": 60369.139285714286,
+        "tp1": 60176.72142857143,
+        "tp2": 60112.58214285714,
+        "rr1": 2,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）",
+        "inEntryZone": false
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 64,
+        "reason": "Provider returned error；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "Provider returned error"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-06-29T23:33:54.595Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：BTCUSDT SHORT｜Entry 60265.1-60344.9｜SL 60369.139285714286｜TP1 60176.72142857143｜TP2 60112.58214285714｜原因：Provider returned error",
+      "nightDate": "2026-06-30",
+      "expiresAt": "2026-07-01T00:00:00.000Z",
+      "orderId": "TG-20260630-0001"
+    }
+  ],
   "settings": {
     "mode": "balanced",
     "paused": false,
@@ -73,12 +200,14 @@
     "nightHourHkt": 23,
     "nightExpiryHourHkt": 8,
     "lastNightPlanDate": "2026-06-30",
+    "lastNightPlanCount": 3,
     "orderSequences": {
-      "TG-20260628": 1
+      "TG-20260628": 1,
+      "TG-20260630": 3
     },
     "automationHeartbeatDate": "2026-06-29",
     "aiUsageDate": "2026-06-30",
-    "aiUsageCount": 11,
+    "aiUsageCount": 14,
     "aiReviewSlots": {
       "ETHUSDT": "2026-06-30:3",
       "SOLUSDT": "2026-06-30:3"
