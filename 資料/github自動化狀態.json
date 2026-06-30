@@ -58,12 +58,137 @@
       },
       "analysis": "結論：做空｜順勢｜可即時入場｜AI評分 78\n市場狀態：bearish\n目前位置：折價區；高週期偏向：down\n\n1. 多週期結構分析\n4H：4H顯示供給區上方，EMA20<EMA50，RSI接近中性偏低，整體偏空\n1H：1H形成高低點上升結構，價格在需求區上方，EMA20≈EMA50，RSI略高於50，短期仍有下行壓力\n15m：15m出現供給帶與下跌趨勢，RSI低於40，MACD持續負向，結構偏向BOS\n5m：5m確認跌破60102.8的CHoCH，形成Bearish BOS，價格已跌至60000以下\n\n2. 流動性目標\n上方 BSL：60200.2、60348.7\n下方 SSL：59881.4、59999.5\n\n3. 交易劇本\n主劇本：TrendShort\n逆向／備用劇本：未有足夠證據\nEntry：59910.09985 - 60090.10015\nSL：60941.495\nTP1：58117.31｜TP2：57175.915\nRR：2／3\n觸發條件：5m Bearish CHoCH at 60102.8；Price entered short entry zone\n失效條件：Price crosses above 60200.2 (EQH) or forms bullish reversal candle\n判斷依據：5m已確認Bearish BOS且價格已進入設定的短線入場區間，符合趨勢做空條件，且上位時間框架仍呈現供給壓力。",
       "rank": 1,
-      "lastCheckedTime": 1782835980,
+      "lastCheckedTime": 1782839400,
       "orderId": "TG-20260628-0001",
       "telegramMessageId": 66
     }
   ],
-  "pendingOrders": [],
+  "pendingOrders": [
+    {
+      "id": "order-1782839662676-SOLUSDT",
+      "status": "pending",
+      "createdAt": "2026-06-30T17:14:22.676Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "SOLUSDT",
+      "rank": 3,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 59,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 71.8,
+        "entryHigh": 72.26,
+        "entryCenter": 72.03,
+        "sl": 71.64964285714285,
+        "tp1": 72.7907142857143,
+        "tp2": 73.17107142857145,
+        "rr1": 2,
+        "rr2": 3,
+        "inEntryZone": false,
+        "source": "AI自主判讀"
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 59,
+        "reason": "基於4H牛結構與15M趨勢，現價位於入場區間上方，等待價格回檔至入場區間以確保風險控制",
+        "riskFlags": [
+          "未有足夠證據"
+        ],
+        "model": "openrouter/free",
+        "reviewedAt": "2026-06-30T17:14:22.676Z",
+        "fallback": false
+      },
+      "analysis": "結論：做多｜順勢｜等待限價區｜AI評分 59\n市場狀態：bullish\n目前位置：中軸／無主之地；高週期偏向：bullish\n\n1. 多週期結構分析\n4H：bullish\n1H：neutral\n15m：neutral\n5m：bullish\n\n2. 流動性目標\n上方 BSL：未確認\n下方 SSL：未確認\n\n3. 交易劇本\n主劇本：trend\n逆向／備用劇本：未有足夠證據\nEntry：71.8 - 72.26\nSL：71.64964285714285\nTP1：72.7907142857143｜TP2：73.17107142857145\nRR：2／3\n觸發條件：未有足夠證據\n失效條件：未有足夠證據\n目前未直接入場原因：尚未滿足即時進場條件\n判斷依據：基於4H牛結構與15M趨勢，現價位於入場區間上方，等待價格回檔至入場區間以確保風險控制",
+      "nightDate": "2026-06-30",
+      "expiresAt": "2026-07-01T00:00:00.000Z",
+      "orderId": "TG-20260701-0003"
+    },
+    {
+      "id": "order-1782839648298-ETHUSDT",
+      "status": "pending",
+      "createdAt": "2026-06-30T17:14:08.298Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "ETHUSDT",
+      "rank": 2,
+      "direction": "SHORT",
+      "strategyType": "trend",
+      "score": 71,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "SHORT",
+        "entryLow": 1574,
+        "entryHigh": 1578,
+        "entryCenter": 1576,
+        "sl": 1629,
+        "tp1": 1480,
+        "tp2": 1416,
+        "rr1": 1.8,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）"
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 71,
+        "reason": "AI 沒有回傳有效 JSON；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "AI 沒有回傳有效 JSON"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-06-30T17:14:08.298Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：ETHUSDT SHORT｜Entry 1574-1578｜SL 1629｜TP1 1480｜TP2 1416｜原因：AI 沒有回傳有效 JSON",
+      "nightDate": "2026-06-30",
+      "expiresAt": "2026-07-01T00:00:00.000Z",
+      "orderId": "TG-20260701-0002"
+    },
+    {
+      "id": "order-1782839479382-BTCUSDT",
+      "status": "pending",
+      "createdAt": "2026-06-30T17:11:19.382Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "BTCUSDT",
+      "rank": 1,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 38,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 58100,
+        "entryHigh": 58374.7,
+        "entryCenter": 58237.35,
+        "sl": 58034.74,
+        "tp1": 58642.57,
+        "tp2": 58845.18,
+        "rr1": 2,
+        "rr2": 3,
+        "inEntryZone": false,
+        "source": "AI自主判讀"
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 38,
+        "reason": "選擇LONG因其進場區間接近當前價格且風險較低，SL設於支撐下方，TP設定在區間上方，符合風險報酬2:1以上。",
+        "riskFlags": [
+          "超賣反彈可能受阻於短期阻力",
+          "波動率較高，需留意突發新聞"
+        ],
+        "model": "openai/gpt-oss-120b:free",
+        "reviewedAt": "2026-06-30T17:11:19.382Z",
+        "fallback": false
+      },
+      "analysis": "結論：做多｜順勢｜等待限價區｜AI評分 38\n市場狀態：bullish_recovery\n目前位置：折價區；高週期偏向：LONG\n\n1. 多週期結構分析\n4H：4H顯示EMA20在59637下方，RSI低於30，屬超賣區，且近期形成小幅底部整理，暗示可能反彈。\n1H：1H EMA20在59052下方，RSI仍在27區，跌勢減緩，出現多頭支撐跡象。\n15m：15m EMA20在58528上方，RSI回升至48，MACD柱轉正，形成多頭區間底部。\n5m：5m EMA20在58383略低於現價，K線呈現長實體收陰，顯示賣壓已釋放，短期可在支撐區逢低買入。\n\n2. 流動性目標\n上方 BSL：58100、58250、58300\n下方 SSL：58500、58650、58800\n\n3. 交易劇本\n主劇本：在4H與1H的超賣狀態下，價格已回落至5m支撐帶，形成低位區間底部，具備長線反彈潛力。\n逆向／備用劇本：未有足夠證據\nEntry：58100 - 58374.7\nSL：58034.74\nTP1：58642.57｜TP2：58845.18\nRR：2／3\n觸發條件：價格觸及58100-58374.7區間內任意點位即掛單\n失效條件：若價格跌破58000且持續下行突破支撐，則取消掛單\n目前未直接入場原因：尚未滿足即時進場條件\n判斷依據：選擇LONG因其進場區間接近當前價格且風險較低，SL設於支撐下方，TP設定在區間上方，符合風險報酬2:1以上。",
+      "nightDate": "2026-06-30",
+      "expiresAt": "2026-07-01T00:00:00.000Z",
+      "orderId": "TG-20260701-0001"
+    }
+  ],
   "settings": {
     "mode": "balanced",
     "paused": false,
@@ -72,14 +197,15 @@
     "nightThreshold": 80,
     "nightHourHkt": 23,
     "nightExpiryHourHkt": 8,
-    "lastNightPlanDate": "2026-06-29",
-    "lastNightPlanCount": 0,
+    "lastNightPlanDate": "2026-06-30",
+    "lastNightPlanCount": 3,
     "orderSequences": {
-      "TG-20260628": 1
+      "TG-20260628": 1,
+      "TG-20260701": 3
     },
     "automationHeartbeatDate": "2026-06-30",
     "aiUsageDate": "2026-07-01",
-    "aiUsageCount": 2,
+    "aiUsageCount": 5,
     "aiReviewSlots": {
       "ETHUSDT": "2026-07-01:0",
       "SOLUSDT": "2026-07-01:0"
