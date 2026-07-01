@@ -49,7 +49,7 @@
       },
       "analysis": "夜更保底：ETHUSDT SHORT｜Entry 1573-1577｜SL 1627｜TP1 1480｜TP2 1417｜原因：AI 沒有回傳有效 JSON",
       "rank": 2,
-      "lastCheckedTime": 1782926460,
+      "lastCheckedTime": 1782929280,
       "orderId": "TG-20260701-0007",
       "telegramMessageId": 72
     },
@@ -111,12 +111,136 @@
       },
       "analysis": "結論：做空｜順勢｜可即時入場｜AI評分 78\n市場狀態：bearish\n目前位置：折價區；高週期偏向：down\n\n1. 多週期結構分析\n4H：4H顯示供給區上方，EMA20<EMA50，RSI接近中性偏低，整體偏空\n1H：1H形成高低點上升結構，價格在需求區上方，EMA20≈EMA50，RSI略高於50，短期仍有下行壓力\n15m：15m出現供給帶與下跌趨勢，RSI低於40，MACD持續負向，結構偏向BOS\n5m：5m確認跌破60102.8的CHoCH，形成Bearish BOS，價格已跌至60000以下\n\n2. 流動性目標\n上方 BSL：60200.2、60348.7\n下方 SSL：59881.4、59999.5\n\n3. 交易劇本\n主劇本：TrendShort\n逆向／備用劇本：未有足夠證據\nEntry：59910.09985 - 60090.10015\nSL：60941.495\nTP1：58117.31｜TP2：57175.915\nRR：2／3\n觸發條件：5m Bearish CHoCH at 60102.8；Price entered short entry zone\n失效條件：Price crosses above 60200.2 (EQH) or forms bullish reversal candle\n判斷依據：5m已確認Bearish BOS且價格已進入設定的短線入場區間，符合趨勢做空條件，且上位時間框架仍呈現供給壓力。",
       "rank": 1,
-      "lastCheckedTime": 1782926460,
+      "lastCheckedTime": 1782929280,
       "orderId": "TG-20260628-0001",
       "telegramMessageId": 66
     }
   ],
   "pendingOrders": [
+    {
+      "id": "order-1782929573413-SOLUSDT",
+      "status": "pending",
+      "createdAt": "2026-07-01T18:12:53.413Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "SOLUSDT",
+      "rank": 3,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 79,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 75.65,
+        "entryHigh": 75.98,
+        "entryCenter": 75.82,
+        "sl": 71.98,
+        "tp1": 82.73,
+        "tp2": 87.33,
+        "rr1": 1.8,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）"
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 79,
+        "reason": "AI 沒有回傳有效 JSON；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "AI 沒有回傳有效 JSON"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-07-01T18:12:53.413Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：SOLUSDT LONG｜Entry 75.65-75.98｜SL 71.98｜TP1 82.73｜TP2 87.33｜原因：AI 沒有回傳有效 JSON",
+      "nightDate": "2026-07-02",
+      "expiresAt": "2026-07-03T00:00:00.000Z",
+      "orderId": "TG-20260702-0003"
+    },
+    {
+      "id": "order-1782929410417-ETHUSDT",
+      "status": "pending",
+      "createdAt": "2026-07-01T18:10:10.417Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "ETHUSDT",
+      "rank": 2,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 57,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 1563.76,
+        "entryHigh": 1568.4,
+        "entryCenter": 1566.08,
+        "sl": 1561.87,
+        "tp1": 1574.5,
+        "tp2": 1578.72,
+        "rr1": 2,
+        "rr2": 3,
+        "inEntryZone": false,
+        "source": "AI自主判讀"
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 57,
+        "reason": "4H and 1H bullish bias with 1H BOS, 15m neutral, 5m bearish but price still above 5m EMA20. Setting a wait‑limit long between 1563.76‑1568.4 gives a low‑risk entry with clear stop and two profit targets.",
+        "riskFlags": [
+          "low"
+        ],
+        "model": "openrouter/free",
+        "reviewedAt": "2026-07-01T18:10:10.417Z",
+        "fallback": false
+      },
+      "analysis": "結論：做多｜順勢｜等待限價區｜AI評分 57\n市場狀態：bullish\n目前位置：中軸／無主之地；高週期偏向：bullish\n\n1. 多週期結構分析\n4H：bullish\n1H：bullish\n15m：neutral\n5m：bearish\n\n2. 流動性目標\n上方 BSL：未確認\n下方 SSL：未確認\n\n3. 交易劇本\n主劇本：1H BOS at 1600.99 confirming bullish momentum\n逆向／備用劇本：none\nEntry：1563.76 - 1568.4\nSL：1561.87\nTP1：1574.5｜TP2：1578.72\nRR：2／3\n觸發條件：entryLow-1563.76；entryHigh-1568.4\n失效條件：price breaks below 1561.87\n目前未直接入場原因：尚未滿足即時進場條件\n判斷依據：4H and 1H bullish bias with 1H BOS, 15m neutral, 5m bearish but price still above 5m EMA20. Setting a wait‑limit long between 1563.76‑1568.4 gives a low‑risk entry with clear stop and two profit targets.",
+      "nightDate": "2026-07-02",
+      "expiresAt": "2026-07-03T00:00:00.000Z",
+      "orderId": "TG-20260702-0002"
+    },
+    {
+      "id": "order-1782929367801-BTCUSDT",
+      "status": "pending",
+      "createdAt": "2026-07-01T18:09:27.801Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "BTCUSDT",
+      "rank": 1,
+      "direction": "SHORT",
+      "strategyType": "trend",
+      "score": 57,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "SHORT",
+        "entryLow": 59869.3,
+        "entryHigh": 60449.9,
+        "entryCenter": 60159.600000000006,
+        "sl": 60493.52857142857,
+        "tp1": 59491.742857142875,
+        "tp2": 59157.81428571431,
+        "rr1": 2,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）",
+        "inEntryZone": true
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 57,
+        "reason": "AI 方案盈虧比不足；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "AI 方案盈虧比不足"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-07-01T18:09:27.801Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：BTCUSDT SHORT｜Entry 59869.3-60449.9｜SL 60493.52857142857｜TP1 59491.742857142875｜TP2 59157.81428571431｜原因：AI 方案盈虧比不足",
+      "nightDate": "2026-07-02",
+      "expiresAt": "2026-07-03T00:00:00.000Z",
+      "orderId": "TG-20260702-0001"
+    },
     {
       "id": "order-1782842987524-SOLUSDT",
       "status": "pending",
@@ -379,15 +503,16 @@
     "nightThreshold": 80,
     "nightHourHkt": 23,
     "nightExpiryHourHkt": 8,
-    "lastNightPlanDate": "2026-07-01",
+    "lastNightPlanDate": "2026-07-02",
     "lastNightPlanCount": 3,
     "orderSequences": {
       "TG-20260628": 1,
-      "TG-20260701": 7
+      "TG-20260701": 7,
+      "TG-20260702": 3
     },
     "automationHeartbeatDate": "2026-07-01",
     "aiUsageDate": "2026-07-02",
-    "aiUsageCount": 1,
+    "aiUsageCount": 4,
     "aiReviewSlots": {
       "SOLUSDT": "2026-07-02:0"
     }
