@@ -49,7 +49,7 @@
       },
       "analysis": "夜更保底：ETHUSDT SHORT｜Entry 1573-1577｜SL 1627｜TP1 1480｜TP2 1417｜原因：AI 沒有回傳有效 JSON",
       "rank": 2,
-      "lastCheckedTime": 1782930720,
+      "lastCheckedTime": 1782937620,
       "orderId": "TG-20260701-0007",
       "telegramMessageId": 72
     },
@@ -111,7 +111,7 @@
       },
       "analysis": "結論：做空｜順勢｜可即時入場｜AI評分 78\n市場狀態：bearish\n目前位置：折價區；高週期偏向：down\n\n1. 多週期結構分析\n4H：4H顯示供給區上方，EMA20<EMA50，RSI接近中性偏低，整體偏空\n1H：1H形成高低點上升結構，價格在需求區上方，EMA20≈EMA50，RSI略高於50，短期仍有下行壓力\n15m：15m出現供給帶與下跌趨勢，RSI低於40，MACD持續負向，結構偏向BOS\n5m：5m確認跌破60102.8的CHoCH，形成Bearish BOS，價格已跌至60000以下\n\n2. 流動性目標\n上方 BSL：60200.2、60348.7\n下方 SSL：59881.4、59999.5\n\n3. 交易劇本\n主劇本：TrendShort\n逆向／備用劇本：未有足夠證據\nEntry：59910.09985 - 60090.10015\nSL：60941.495\nTP1：58117.31｜TP2：57175.915\nRR：2／3\n觸發條件：5m Bearish CHoCH at 60102.8；Price entered short entry zone\n失效條件：Price crosses above 60200.2 (EQH) or forms bullish reversal candle\n判斷依據：5m已確認Bearish BOS且價格已進入設定的短線入場區間，符合趨勢做空條件，且上位時間框架仍呈現供給壓力。",
       "rank": 1,
-      "lastCheckedTime": 1782930720,
+      "lastCheckedTime": 1782937620,
       "orderId": "TG-20260628-0001",
       "telegramMessageId": 66
     }
@@ -512,9 +512,9 @@
     },
     "automationHeartbeatDate": "2026-07-01",
     "aiUsageDate": "2026-07-02",
-    "aiUsageCount": 5,
+    "aiUsageCount": 6,
     "aiReviewSlots": {
-      "SOLUSDT": "2026-07-02:1"
+      "SOLUSDT": "2026-07-02:2"
     }
   }
 }
