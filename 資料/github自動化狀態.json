@@ -521,12 +521,12 @@
       "TG-20260702": 3
     },
     "automationHeartbeatDate": "2026-07-02",
-    "aiUsageDate": "2026-07-02",
-    "aiUsageCount": 15,
+    "aiUsageDate": "2026-07-03",
+    "aiUsageCount": 3,
     "aiReviewSlots": {
-      "SOLUSDT": "2026-07-02:11",
-      "ETHUSDT": "2026-07-02:11",
-      "BTCUSDT": "2026-07-02:11"
+      "BTCUSDT": "2026-07-03:0",
+      "ETHUSDT": "2026-07-03:0",
+      "SOLUSDT": "2026-07-03:0"
     }
   }
 }
