@@ -115,7 +115,7 @@
       },
       "analysis": "結論：做空｜順勢｜可即時入場｜AI評分 78\n市場狀態：bearish\n目前位置：折價區；高週期偏向：down\n\n1. 多週期結構分析\n4H：4H顯示供給區上方，EMA20<EMA50，RSI接近中性偏低，整體偏空\n1H：1H形成高低點上升結構，價格在需求區上方，EMA20≈EMA50，RSI略高於50，短期仍有下行壓力\n15m：15m出現供給帶與下跌趨勢，RSI低於40，MACD持續負向，結構偏向BOS\n5m：5m確認跌破60102.8的CHoCH，形成Bearish BOS，價格已跌至60000以下\n\n2. 流動性目標\n上方 BSL：60200.2、60348.7\n下方 SSL：59881.4、59999.5\n\n3. 交易劇本\n主劇本：TrendShort\n逆向／備用劇本：未有足夠證據\nEntry：59910.09985 - 60090.10015\nSL：60941.495\nTP1：58117.31｜TP2：57175.915\nRR：2／3\n觸發條件：5m Bearish CHoCH at 60102.8；Price entered short entry zone\n失效條件：Price crosses above 60200.2 (EQH) or forms bullish reversal candle\n判斷依據：5m已確認Bearish BOS且價格已進入設定的短線入場區間，符合趨勢做空條件，且上位時間框架仍呈現供給壓力。",
       "rank": 1,
-      "lastCheckedTime": 1782949080,
+      "lastCheckedTime": 1782956400,
       "orderId": "TG-20260628-0001",
       "telegramMessageId": 66
     }
@@ -247,7 +247,7 @@
     },
     {
       "id": "order-1782842987524-SOLUSDT",
-      "status": "pending",
+      "status": "expired",
       "createdAt": "2026-06-30T18:09:47.524Z",
       "system": "telegram",
       "source": "night_plan",
@@ -285,7 +285,8 @@
       "analysis": "夜更保底：SOLUSDT LONG｜Entry 71.8-72.26｜SL 71.69678571428571｜TP1 72.69642857142858｜TP2 73.02964285714287｜原因：AI 沒有回傳有效 JSON",
       "nightDate": "2026-07-01",
       "expiresAt": "2026-07-02T00:00:00.000Z",
-      "orderId": "TG-20260701-0006"
+      "orderId": "TG-20260701-0006",
+      "closedAt": "2026-07-02T01:36:02.002Z"
     },
     {
       "id": "order-1782842960457-ETHUSDT",
@@ -332,7 +333,7 @@
     },
     {
       "id": "order-1782842924994-BTCUSDT",
-      "status": "pending",
+      "status": "expired",
       "createdAt": "2026-06-30T18:08:44.994Z",
       "system": "telegram",
       "source": "night_plan",
@@ -369,7 +370,8 @@
       "analysis": "夜更保底：BTCUSDT SHORT｜Entry 58855-58988｜SL 60573｜TP1 55948｜TP2 53966｜原因：AI 方案盈虧比不足",
       "nightDate": "2026-07-01",
       "expiresAt": "2026-07-02T00:00:00.000Z",
-      "orderId": "TG-20260701-0004"
+      "orderId": "TG-20260701-0004",
+      "closedAt": "2026-07-02T01:36:02.003Z"
     },
     {
       "id": "order-1782839662676-SOLUSDT",
@@ -514,12 +516,12 @@
       "TG-20260701": 7,
       "TG-20260702": 3
     },
-    "automationHeartbeatDate": "2026-07-01",
+    "automationHeartbeatDate": "2026-07-02",
     "aiUsageDate": "2026-07-02",
-    "aiUsageCount": 8,
+    "aiUsageCount": 10,
     "aiReviewSlots": {
-      "SOLUSDT": "2026-07-02:3",
-      "ETHUSDT": "2026-07-02:3"
+      "SOLUSDT": "2026-07-02:4",
+      "ETHUSDT": "2026-07-02:4"
     }
   }
 }
