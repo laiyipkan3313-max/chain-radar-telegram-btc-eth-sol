@@ -126,6 +126,132 @@
   ],
   "pendingOrders": [
     {
+      "id": "order-1783015561104-SOLUSDT",
+      "status": "pending",
+      "createdAt": "2026-07-02T18:06:01.104Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "SOLUSDT",
+      "rank": 3,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 69,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 79.98,
+        "entryHigh": 80.44,
+        "entryCenter": 80.21000000000001,
+        "sl": 79.87964285714285,
+        "tp1": 80.87071428571431,
+        "tp2": 81.20107142857147,
+        "rr1": 2,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）",
+        "inEntryZone": false
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 69,
+        "reason": "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-07-02T18:06:01.104Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：SOLUSDT LONG｜Entry 79.98-80.44｜SL 79.87964285714285｜TP1 80.87071428571431｜TP2 81.20107142857147｜原因：Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day",
+      "nightDate": "2026-07-03",
+      "expiresAt": "2026-07-04T00:00:00.000Z",
+      "orderId": "TG-20260703-0003"
+    },
+    {
+      "id": "order-1783015556747-ETHUSDT",
+      "status": "pending",
+      "createdAt": "2026-07-02T18:05:56.747Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "ETHUSDT",
+      "rank": 2,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 69,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 1612.89,
+        "entryHigh": 1615.66,
+        "entryCenter": 1614.275,
+        "sl": 1611.0989285714286,
+        "tp1": 1620.627142857143,
+        "tp2": 1623.8032142857146,
+        "rr1": 2,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）",
+        "inEntryZone": false
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 69,
+        "reason": "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-07-02T18:05:56.747Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：ETHUSDT LONG｜Entry 1612.89-1615.66｜SL 1611.0989285714286｜TP1 1620.627142857143｜TP2 1623.8032142857146｜原因：Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day",
+      "nightDate": "2026-07-03",
+      "expiresAt": "2026-07-04T00:00:00.000Z",
+      "orderId": "TG-20260703-0002"
+    },
+    {
+      "id": "order-1783015552128-BTCUSDT",
+      "status": "pending",
+      "createdAt": "2026-07-02T18:05:52.128Z",
+      "system": "telegram",
+      "source": "night_plan",
+      "symbol": "BTCUSDT",
+      "rank": 1,
+      "direction": "LONG",
+      "strategyType": "trend",
+      "score": 61,
+      "quality": "opportunity",
+      "plan": {
+        "direction": "LONG",
+        "entryLow": 61091.8,
+        "entryHigh": 61387.3,
+        "entryCenter": 61239.55,
+        "sl": 61045.55714285714,
+        "tp1": 61627.535714285725,
+        "tp2": 61821.528571428586,
+        "rr1": 2,
+        "rr2": 3,
+        "source": "規則引擎保底（AI異常時使用）",
+        "inEntryZone": false
+      },
+      "aiDecision": {
+        "approved": true,
+        "score": 61,
+        "reason": "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day；為避免夜間完全冇覆蓋，使用規則引擎保底掛單。",
+        "riskFlags": [
+          "AI_FALLBACK",
+          "Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day"
+        ],
+        "model": "RULE_ENGINE_FALLBACK",
+        "reviewedAt": "2026-07-02T18:05:52.128Z",
+        "fallback": true
+      },
+      "analysis": "夜更保底：BTCUSDT LONG｜Entry 61091.8-61387.3｜SL 61045.55714285714｜TP1 61627.535714285725｜TP2 61821.528571428586｜原因：Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day",
+      "nightDate": "2026-07-03",
+      "expiresAt": "2026-07-04T00:00:00.000Z",
+      "orderId": "TG-20260703-0001"
+    },
+    {
       "id": "order-1782929573413-SOLUSDT",
       "status": "pending",
       "createdAt": "2026-07-01T18:12:53.413Z",
@@ -513,16 +639,17 @@
     "nightThreshold": 80,
     "nightHourHkt": 23,
     "nightExpiryHourHkt": 8,
-    "lastNightPlanDate": "2026-07-02",
+    "lastNightPlanDate": "2026-07-03",
     "lastNightPlanCount": 3,
     "orderSequences": {
       "TG-20260628": 1,
       "TG-20260701": 7,
-      "TG-20260702": 3
+      "TG-20260702": 3,
+      "TG-20260703": 3
     },
     "automationHeartbeatDate": "2026-07-02",
     "aiUsageDate": "2026-07-03",
-    "aiUsageCount": 3,
+    "aiUsageCount": 6,
     "aiReviewSlots": {
       "BTCUSDT": "2026-07-03:0",
       "ETHUSDT": "2026-07-03:0",
